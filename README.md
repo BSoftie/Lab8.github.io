@@ -1,0 +1,246 @@
+<!-- html comments need to look like this -->
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Lab Experiment Nr. 8</title>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width,initial-scale=1"/>
+        <meta name="description" content=""/>
+
+        <!-- we load external files inside the <head></head> tag -->
+        <!-- This loads the jspsych library from the file inside the folder "js" called "jspsych.js" -->
+        <script src="js/jspsych.js"></script>
+
+        <!-- then we need to link to our needed plugins using script tags -->
+        <script src="plugins/plugin-html-keyboard-response.js"></script>
+        <script src="plugins/plugin-survey-text.js"></script>
+        <script src="plugins/plugin-instructions.js"></script>
+
+
+        <!-- we also need to link to our stylesheet -->
+        <link href="css/jspsych.css" rel="stylesheet" type="text/css"/>
+
+
+        <style>
+            /* CSS Rules go Here ------------------------------ */
+            .instructionStyle {
+                max-width: 750px;
+                text-align: left;
+            }
+
+            body {
+                background-color: black; color: white;
+            }
+
+            .instructionStyleX {
+                max-width: 750px;
+                font-size: 225%;
+                color:crimson;
+                font-family:fantasy;
+                text-align: center;
+            }
+
+            /* END OF CSS RULES ------------------------------- */
+        </style>
+    </head>
+
+    <body>
+        <!-- HTML would normally go here, but we'll let jsPsych add all of our HTML for us -->
+
+
+        <script>
+            /// JavaScript goes here -------------------------------- //
+
+            function saveData() {
+                let data = jsPsych.data.get()
+                data = data.join(jsPsych.data.getInteractionData())
+                data = data.csv()
+                let d = new Date();
+                let name = d.getFullYear() + "-" +
+                    (d.getMonth() + 1) + "-" +
+                    d.getDate() + "_" + d.getHours() + ":" +
+                    d.getMinutes() + ":" +
+                    d.getSeconds() + "_" +
+                    jsPsych.randomization.randomID(8)
+
+                    var url = 'save_data.php';
+                    var data_to_send = {filename: name, filedata: data}; 
+                    fetch(url, {
+                        method: 'POST',
+                        body: JSON.stringify(data_to_send), 
+                        headers: new Headers({
+                            'Content-Type': 'application/json'
+                        })
+                    }); 
+                }
+            
+            const jsPsych = initJsPsych({ 
+                on_finish: function() {
+                    jsPsych.data.displayData();
+                    saveData() 
+                }
+            });
+
+            let instructionsX = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: function(){
+                let output
+
+                output = `<div class="instructionStyleX">
+                        <p>Welcome to the Experiment    
+                        <p>In a moment you will use your creative and weird thoughts to complete the tasks.</p>
+                            <p></p>
+                            <p>To read through the instructions, press "right arrow" to go to the next page</p>
+                        </div>`
+
+                return output
+            },
+            choices: "ALL_KEYS"
+        }
+
+
+            let aut_instructions = { 
+                type: jsPsychInstructions, 
+                pages: [
+                    `<div class="instructionStyle">
+                        <p>In this part of the task, you will be shown the name of a
+                        common object (e.g. "a BRICK") and your task is to come up
+                        with creative unusual uses for this object.
+                        For example if the object were “brick” you might write the
+                        following creative uses for this object:</p>
+                    <ul>
+                        <li> Use it as a paper weight </li>
+                        <li> Grind it up and use the sand to make paint </li>
+                        <li> Warm it up in the oven and put it in your bed
+                            to keep the bed warm </li>
+                        </ul>
+                    <p>Your responses should be creative, useful and specific to the object.
+                        "Throw it into the ocean" is not a useful response and not specific to a
+                        brick, because you could throw anything into the ocean.</p>
+                    </div>`,
+                    `<div class="instructionStyle">
+                        <p>When you press NEXT, you will see the name of an object and a text box.</p>
+                        <p>You will have to generate 10 creative uses for that object.
+                        For each use, you will type in one response and press SUBMIT</p>
+                        <p>Press NEXT when you are ready to begin the experimental trials.</p>
+                        </div>`
+                ],
+                data: {
+                    phase: "AUT",
+                    event_type: "instructions"
+                }
+    
+            }
+            
+            let aut = { 
+                timeline: [
+                    {
+                        type:jsPsychHtmlKeyboardResponse,
+                        stimulus: `<p style="font-size: 72px">+</p>`,
+                        choices: "NO_KEYS",
+                        trial_duration: 1000,
+                        data: {
+                            event_type: "fixation"
+                        }
+                    },
+                    {
+                        type:jsPsychSurveyText,
+                        questions: [
+                            {
+                                prompt: "What is a creative, and unusual, use for a BRICK?",
+                                name: "AUT",
+                                required: true
+                            }
+                            ],
+                            button_label: "SUBMIT",
+                            data: {
+                                event_type: "response",
+                                prompt: "BRICK"
+                            }
+                        }
+                    ],
+                    repetitions: 10,
+                    data: {
+                        phase: "AUT"
+                }
+            }
+
+            let rat_instructions = { 
+                type: jsPsychInstructions, 
+                pages: [
+                    `<div class="instructionStyle">
+                        <p>In the next task, you will be presented three words.</p>
+                        <p>Your task is to type in the word that links all three words together.</p>
+                        <p>For example:</p>
+                    <ul>
+                        <li> COTTAGE / SWISS / CAKE are all linked to "CHEESE" </li>
+                        <li> WET / LAW / BUSINESS are all linked to "SUIT" </li>
+                        <li> LINE / FRUIT / DRUNK are all linked to "PUNCH"</li>
+                        </ul>
+                    </div>`,
+                    `<div class="instructionStyle">
+                        <p>When you press NEXT, you will see three words and a textbox</p>
+                        <p>Your task to type in the word that links all three
+                        and type it in the box</p>
+                    <p>Press NEXT when you are ready to begin the experiment.</p>
+                    </div>`
+
+                ], 
+                data: {
+                    phase: "RAT",
+                    event_type: "instructions"
+                }
+            }
+
+            let rat = { 
+                timeline: [
+                    {
+                        type:jsPsychHtmlKeyboardResponse,
+                        stimulus: `<p style="font-size: 72px">+</p>`,
+                        choices: "NO_KEYS",
+                        trial_duration: 1000,
+                        data: {
+                            event_type: "fixation"
+                        }
+                    },
+                    {
+                        type:jsPsychSurveyText,
+                        questions: [
+                            {
+                                prompt: jsPsych.timelineVariable("words"),
+                                name: "RAT",
+                                required: true
+                            }
+                            ],
+                            button_label: "SUBMIT",
+                            data: {
+                                event_type: "response",
+                                prompt: jsPsych.timelineVariable("words")
+                            }
+                        } 
+                    ],
+                    timeline_variables: [
+                        {words: "DIVE / LIGHT / ROCKET"},
+                        {words: "HIGH / DISTRICT / HOUSE"},
+                        {words: "PIE / LUCK / BELLY"},
+                        {words: "CROSS / RAIN / TIE"},
+                        {words: "BLOOD / MUSIC / CHEESE"}
+                    ], 
+                    data: {
+                        phase: "RAT"
+                }
+            }
+
+        let exp_timeline = [instructionsX, aut_instructions, aut, rat_instructions, rat]
+
+        jsPsych.run(exp_timeline)
+
+
+
+            /// END OF JAVASCRIPT ----------------------------------- //
+        </script>
+
+       <!-- END OF HTML -->
+    </body>
+</html>
